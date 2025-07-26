@@ -249,9 +249,23 @@ done
 
 printf "\nQuerying custom hosts...\n"
 
-for h in ${custom_hosts}; do
-	query_host "${h}"
-done
+# If custom_hosts is defined, process as before
+if [ -n "$custom_hosts" ]; then
+    printf "\nQuerying custom_hosts from config...\n"
+    for h in ${custom_hosts}; do
+        query_host "${h}"
+    done
+fi
+
+# If custom_hosts_file is defined and file exists, process the file
+if [ -n "$custom_hosts_file" ] && [ -f "$custom_hosts_file" ]; then
+    printf "\nQuerying custom_hosts from file: $custom_hosts_file...\n"
+    while IFS= read -r h; do
+        # Ignora linhas vazias ou comentadas
+        [[ -z "$h" || "$h" =~ ^# ]] && continue
+        query_host "${h}"
+    done < "$custom_hosts_file"
+fi
 
 if [ x"$include_yahoo" = x"yes" ] ; then
 	printf "\nIncluding scraped Yahoo! outbound hosts...\n"
