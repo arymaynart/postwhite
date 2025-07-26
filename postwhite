@@ -260,11 +260,22 @@ if [ x"$include_yahoo" = x"yes" ] ; then
 fi
 
 if [ x"$enable_blacklist" = x"yes" ] ; then
-	printf "\nQuerying blacklist hosts...\n"
+    printf "\nQuerying blacklist hosts...\n"
 
-	for h in ${blacklist_hosts}; do
-		query_black_host "${h}"
-	done
+    for h in ${blacklist_hosts}; do
+        query_black_host "${h}"
+    done
+
+    # Read domains from file if defined
+    if [ -n "$blacklist_hosts_file" ] && [ -f "$blacklist_hosts_file" ]; then
+        while IFS= read -r h; do
+            # Ignore coments
+            [ -z "$h" ] && continue
+            echo "$h" | grep -q '^#' && continue
+
+            query_black_host "$h"
+        done < "$blacklist_hosts_file"
+    fi
 fi
 
 # If enabled, simplify (remove) any individual IPs already included in CIDR ranges (disabled by default)
